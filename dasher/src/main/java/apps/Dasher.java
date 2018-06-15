@@ -52,8 +52,8 @@ public class Dasher extends Application<Configuration> {
           customer = "Unknown";
         }
 
-        for (int i = 0; i < random.nextInt(10); i++) {
-          System.out.println(String.format("%s out for delivery for customer: %s", foodItem, customer));
+        for (int i = 0; i < random.nextInt(5); i++) {
+          System.out.println(String.format("%s out for delivery for customer: %s ...", foodItem, customer));
           Thread.sleep(1000);
         }
 

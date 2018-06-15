@@ -16,6 +16,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import java.util.concurrent.TimeUnit;
 
 import static lib.Utils.getHttp;
 
@@ -26,7 +27,7 @@ public class DoorDash extends Application<Configuration> {
 
   private DoorDash(Tracer tracer) {
     this.tracer = tracer;
-    this.client = new OkHttpClient();
+    this.client = new OkHttpClient().newBuilder().readTimeout(2, TimeUnit.MINUTES).build();
   }
 
   public static void main(String[] args) throws Exception {
@@ -62,7 +63,7 @@ public class DoorDash extends Application<Configuration> {
 
     private String orderFood(String foodItem) {
       try (Scope scope = tracer.buildSpan("orderFood").startActive(true)) {
-        String orderStatus = getHttp(tracer, client, 8082,"restaurant/order", "foodItem", foodItem);
+        String orderStatus = getHttp(tracer, client, 8082, "restaurant/order", "foodItem", foodItem);
         scope.span().log(ImmutableMap.of("event", "order-status", "value", orderStatus));
         return orderStatus;
       }

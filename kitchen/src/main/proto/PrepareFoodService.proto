@@ -1,0 +1,18 @@
+syntax = "proto3";
+option java_multiple_files = true;
+package kitchen;
+
+message PrepareFoodRequest {
+    string foodItem = 1;
+}
+
+message PrepareFoodResponse {
+    string status = 1;
+}
+
+// unary request and unary response
+service PrepareFoodService {
+    rpc prepare (PrepareFoodRequest) returns (PrepareFoodResponse);
+}
+
+// #TODO - support streaming

@@ -4,8 +4,16 @@ import com.google.common.collect.ImmutableMap;
 import io.dropwizard.Application;
 import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.MethodDescriptor;
 import io.opentracing.Scope;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.ClientTracingInterceptor;
+import io.opentracing.contrib.OperationNameConstructor;
+import kitchen.PrepareFoodRequest;
+import kitchen.PrepareFoodResponse;
+import kitchen.PrepareFoodServiceGrpc;
 import lib.Tracing;
 
 import javax.ws.rs.GET;
@@ -15,11 +23,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
-import java.util.Random;
 
 public class Restaurant extends Application<Configuration> {
 
-  private final Random random = new Random();
   private final Tracer tracer;
 
   private Restaurant(Tracer tracer) {
@@ -39,6 +45,28 @@ public class Restaurant extends Application<Configuration> {
     environment.getApplicationContext().setContextPath("/restaurant");
   }
 
+  private String prepareFoodRequest(String foodItem) {
+    ManagedChannel channel = null;
+    try {
+      channel = ManagedChannelBuilder.forAddress("localhost", 8084).usePlaintext(true).build();
+      ClientTracingInterceptor tracingInterceptor = new ClientTracingInterceptor.Builder(tracer).withOperationName(new OperationNameConstructor() {
+        @Override
+        public <ReqT, RespT> String constructOperationName(MethodDescriptor<ReqT, RespT> method) {
+          return method.getFullMethodName();
+        }
+      }).build();
+      PrepareFoodServiceGrpc.PrepareFoodServiceBlockingStub stub =
+              PrepareFoodServiceGrpc.newBlockingStub(tracingInterceptor.intercept(channel));
+      PrepareFoodResponse response = stub.prepare(PrepareFoodRequest.newBuilder().setFoodItem(foodItem).build());
+      String status = response.getStatus();
+      return status;
+    } finally {
+      if (channel != null) {
+        channel.shutdown();
+      }
+    }
+  }
+
   @Path("/restaurant/order")
   @Produces(MediaType.TEXT_PLAIN)
   public class RestaurantResource {
@@ -51,13 +79,13 @@ public class Restaurant extends Application<Configuration> {
           customer = "Unknown";
         }
 
-        for (int i = 0; i < random.nextInt(10); i++) {
-          System.out.println(String.format("Preparing %s for customer: %s", foodItem, customer));
-          Thread.sleep(1000);
-        }
-
+        System.out.println("Sending prepare food request to kitchen service");
+        String prepareFoodStatus = prepareFoodRequest(foodItem);
+        System.out.println(prepareFoodStatus);
+        scope.span().log(ImmutableMap.of("event", "restaurant-prepare-food-status", "value", prepareFoodStatus));
         String orderStatus = String.format("Ordered foodItem: %s for customer: %s is ready for delivery",
                 foodItem, customer);
+        System.out.println(orderStatus);
         scope.span().log(ImmutableMap.of("event", "order-status", "value", orderStatus));
         return orderStatus;
       }
