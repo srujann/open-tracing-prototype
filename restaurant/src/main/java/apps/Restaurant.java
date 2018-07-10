@@ -24,7 +24,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 
-public class Restaurant extends Application<Configuration> {
+public class Restaurant extends Application<ApplicationConfiguration> {
 
   private final Tracer tracer;
 
@@ -33,14 +33,12 @@ public class Restaurant extends Application<Configuration> {
   }
 
   public static void main(String[] args) throws Exception {
-    System.setProperty("dw.server.applicationConnectors[0].port", "8082");
-    System.setProperty("dw.server.adminConnectors[0].port", "9082");
     Tracer tracer = Tracing.init("restaurant");
     new Restaurant(tracer).run(args);
   }
 
   @Override
-  public void run(Configuration configuration, Environment environment) throws Exception {
+  public void run(ApplicationConfiguration configuration, Environment environment) throws Exception {
     environment.jersey().register(new RestaurantResource());
     environment.getApplicationContext().setContextPath("/restaurant");
   }

@@ -17,7 +17,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.util.Random;
 
-public class Dasher extends Application<Configuration> {
+public class Dasher extends Application<ApplicationConfiguration> {
 
   private final Random random = new Random();
   private final Tracer tracer;
@@ -27,14 +27,12 @@ public class Dasher extends Application<Configuration> {
   }
 
   public static void main(String[] args) throws Exception {
-    System.setProperty("dw.server.applicationConnectors[0].port", "8083");
-    System.setProperty("dw.server.adminConnectors[0].port", "9083");
     Tracer tracer = Tracing.init("dasher");
     new Dasher(tracer).run(args);
   }
 
   @Override
-  public void run(Configuration configuration, Environment environment) throws Exception {
+  public void run(ApplicationConfiguration configuration, Environment environment) throws Exception {
     environment.jersey().register(new DasherResource());
     environment.getApplicationContext().setContextPath("/dasher");
   }

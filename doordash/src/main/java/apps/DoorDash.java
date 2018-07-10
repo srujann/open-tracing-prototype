@@ -2,7 +2,6 @@ package apps;
 
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.Application;
-import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
 import io.opentracing.Scope;
 import io.opentracing.Tracer;
@@ -20,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import static lib.Utils.getHttp;
 
-public class DoorDash extends Application<Configuration> {
+public class DoorDash extends Application<ApplicationConfiguration> {
 
   private final OkHttpClient client;
   private final Tracer tracer;
@@ -31,21 +30,19 @@ public class DoorDash extends Application<Configuration> {
   }
 
   public static void main(String[] args) throws Exception {
-    System.setProperty("dw.server.applicationConnectors[0].port", "8081");
-    System.setProperty("dw.server.adminConnectors[0].port", "9081");
     Tracer tracer = Tracing.init("doordash");
     new DoorDash(tracer).run(args);
   }
 
   @Override
-  public void run(Configuration configuration, Environment environment) throws Exception {
-    environment.jersey().register(new DasherResource());
+  public void run(ApplicationConfiguration configuration, Environment environment) throws Exception {
+    environment.jersey().register(new DoorDashResource());
     environment.getApplicationContext().setContextPath("/doordash");
   }
 
   @Path("/doordash/order")
   @Produces(MediaType.TEXT_PLAIN)
-  public class DasherResource {
+  public class DoorDashResource {
 
     @GET
     public String orderAndDeliver(@QueryParam("foodItem") String foodItem,
