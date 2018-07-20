@@ -1,5 +1,9 @@
 package lib;
 
+import com.wavefront.integrations.Wavefront;
+import com.wavefront.integrations.WavefrontDirectSender;
+import com.wavefront.integrations.WavefrontSender;
+import io.dropwizard.setup.Environment;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
@@ -7,6 +11,9 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import wavefront.com.sdk.DropwizardApplicationReporter;
+import wavefront.com.sdk.WavefrontDropwizardApplicationReporter;
+import wavefront.com.sdk.WavefrontJerseyFilter;
 
 import java.io.IOException;
 
@@ -32,5 +39,27 @@ public abstract class Utils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public static void configureWavefrontDropwizardSdk(
+          ApplicationConfiguration configuration,
+          Environment environment) {
+    WavefrontSender wavefrontSender = null;
+    switch (configuration.getWavefrontReporterMechanism()) {
+      case "proxy":
+        wavefrontSender = new Wavefront(configuration.getHost(), Integer.parseInt(configuration.getPort()));
+        break;
+      case "direct-ingestion":
+        wavefrontSender = new WavefrontDirectSender(configuration.getWavefrontServer(), configuration.getToken());
+        break;
+      default:
+        throw new IllegalArgumentException("Invalid Wavefront reporting mechanism: " + configuration.getWavefrontReporterMechanism());
+    }
+
+    DropwizardApplicationReporter wfAppReporter = new WavefrontDropwizardApplicationReporter.Builder(wavefrontSender).
+            application(configuration.getApplication()).cluster(configuration.getCluster()).
+            service(configuration.getService()).shard(configuration.getShard()).
+            customTags(configuration.getTags()).build();
+    environment.jersey().register(new WavefrontJerseyFilter(wfAppReporter));
   }
 }

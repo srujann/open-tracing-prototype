@@ -5,6 +5,7 @@ import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 import io.opentracing.Scope;
 import io.opentracing.Tracer;
+import lib.ApplicationConfiguration;
 import lib.Tracing;
 import okhttp3.OkHttpClient;
 
@@ -17,12 +18,14 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.util.concurrent.TimeUnit;
 
+import static lib.Utils.configureWavefrontDropwizardSdk;
 import static lib.Utils.getHttp;
 
 public class DoorDash extends Application<ApplicationConfiguration> {
 
   private final OkHttpClient client;
   private final Tracer tracer;
+  private ApplicationConfiguration configuration;
 
   private DoorDash(Tracer tracer) {
     this.tracer = tracer;
@@ -36,8 +39,10 @@ public class DoorDash extends Application<ApplicationConfiguration> {
 
   @Override
   public void run(ApplicationConfiguration configuration, Environment environment) throws Exception {
+    this.configuration = configuration;
     environment.jersey().register(new DoorDashResource());
     environment.getApplicationContext().setContextPath("/doordash");
+    configureWavefrontDropwizardSdk(configuration, environment);
   }
 
   @Path("/doordash/order")
@@ -45,11 +50,18 @@ public class DoorDash extends Application<ApplicationConfiguration> {
   public class DoorDashResource {
 
     @GET
+    @Path("/{id}")
     public String orderAndDeliver(@QueryParam("foodItem") String foodItem,
                                   @QueryParam("customer") String customer,
                                   @Context HttpHeaders httpHeaders)
             throws InterruptedException {
-      try (Scope scope = tracer.buildSpan("order-and-deliver").startActive(true)) {
+      try (Scope scope = tracer.buildSpan("order-and-deliver").
+              withTag("application", configuration.getApplication()).
+              withTag("cluster", configuration.getCluster()).
+              withTag("service", configuration.getService()).
+              withTag("shard", configuration.getShard()).
+              // TODO - add map of tags
+              startActive(true)) {
         scope.span().setTag("foodItem", foodItem);
         scope.span().setBaggageItem("customer", customer);
         scope.span().log(ImmutableMap.of("event", "http-response-order", "value", orderFood(foodItem)));

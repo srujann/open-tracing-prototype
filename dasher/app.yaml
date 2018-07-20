@@ -6,12 +6,21 @@ server:
   - type: http
     port: 9083
 
-wavefrontReporterMechanism: proxy
+wavefrontReporterMechanism: direct-ingestion
 
 # Report via Direct Ingestion
-wavefrontServer: localhost
-token: <TOKEN>
+wavefrontServer: http://localhost:8080
+token: 83b67360-b57f-4422-b592-17f9691fd28b
 
 # Report via Proxy
 host: localhost
 port: 2878
+
+application: wavefront
+cluster: doordash-cluster
+service: dasher
+shard: primary
+
+tags:
+  location: SF
+  env: Staging

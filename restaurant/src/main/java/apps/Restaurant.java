@@ -2,7 +2,6 @@ package apps;
 
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.Application;
-import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -14,6 +13,7 @@ import io.opentracing.contrib.OperationNameConstructor;
 import kitchen.PrepareFoodRequest;
 import kitchen.PrepareFoodResponse;
 import kitchen.PrepareFoodServiceGrpc;
+import lib.ApplicationConfiguration;
 import lib.Tracing;
 
 import javax.ws.rs.GET;
@@ -23,6 +23,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+
+import static lib.Utils.configureWavefrontDropwizardSdk;
 
 public class Restaurant extends Application<ApplicationConfiguration> {
 
@@ -41,6 +43,7 @@ public class Restaurant extends Application<ApplicationConfiguration> {
   public void run(ApplicationConfiguration configuration, Environment environment) throws Exception {
     environment.jersey().register(new RestaurantResource());
     environment.getApplicationContext().setContextPath("/restaurant");
+    configureWavefrontDropwizardSdk(configuration, environment);
   }
 
   private String prepareFoodRequest(String foodItem) {

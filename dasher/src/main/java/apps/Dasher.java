@@ -2,10 +2,10 @@ package apps;
 
 import com.google.common.collect.ImmutableMap;
 import io.dropwizard.Application;
-import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
 import io.opentracing.Scope;
 import io.opentracing.Tracer;
+import lib.ApplicationConfiguration;
 import lib.Tracing;
 
 import javax.ws.rs.GET;
@@ -17,10 +17,13 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import java.util.Random;
 
+import static lib.Utils.configureWavefrontDropwizardSdk;
+
 public class Dasher extends Application<ApplicationConfiguration> {
 
   private final Random random = new Random();
   private final Tracer tracer;
+  private ApplicationConfiguration configuration;
 
   private Dasher(Tracer tracer) {
     this.tracer = tracer;
@@ -33,8 +36,10 @@ public class Dasher extends Application<ApplicationConfiguration> {
 
   @Override
   public void run(ApplicationConfiguration configuration, Environment environment) throws Exception {
+    this.configuration = configuration;
     environment.jersey().register(new DasherResource());
     environment.getApplicationContext().setContextPath("/dasher");
+    configureWavefrontDropwizardSdk(configuration, environment);
   }
 
   @Path("/dasher/deliver")
