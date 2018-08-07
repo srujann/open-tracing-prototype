@@ -1,11 +1,3 @@
-server:
-  applicationConnectors:
-  - type: http
-    port: 8083
-  adminConnectors:
-  - type: http
-    port: 9083
-
 wavefrontReporterMechanism: direct-ingestion
 
 # Report via Direct Ingestion
@@ -18,7 +10,7 @@ port: 2878
 
 application: wavefront
 cluster: doordash-cluster
-service: dasher
+service: kitchen
 shard: primary
 
 tags:

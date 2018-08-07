@@ -37,6 +37,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.wavefront</groupId>
+            <artifactId>wavefront-opentracing</artifactId>
+            <version>0.1.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.uber.jaeger</groupId>
             <artifactId>jaeger-core</artifactId>
             <version>${jaeger.version}</version>
@@ -81,10 +86,10 @@
             <artifactId>java-client</artifactId>
             <version>4.30-SNAPSHOT</version>
         </dependency>
-		<dependency>
-			<groupId>com.wavefront</groupId>
-			<artifactId>wavefront-opentracing</artifactId>
-			<version>0.1.0</version>
-		</dependency>
+        <dependency>
+            <groupId>com.wavefront</groupId>
+            <artifactId>grpc-sdk</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

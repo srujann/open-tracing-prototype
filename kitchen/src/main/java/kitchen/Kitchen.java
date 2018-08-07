@@ -9,7 +9,9 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.OpenTracingContextKey;
 import io.opentracing.contrib.ServerTracingInterceptor;
+import lib.GrpcServiceConfiguration;
 import lib.Tracing;
+import lib.Utils;
 
 import java.io.IOException;
 import java.util.Random;
@@ -17,10 +19,13 @@ import java.util.Random;
 public class Kitchen {
   private final Tracer tracer = Tracing.init("Kitchen");
 
-  public Kitchen() throws IOException, InterruptedException {
+  public Kitchen(GrpcServiceConfiguration configuration) throws IOException, InterruptedException {
     ServerTracingInterceptor tracingInterceptor = new ServerTracingInterceptor(tracer);
-    Server kitchen = ServerBuilder.forPort(8084).
-            addService(tracingInterceptor.intercept(new PrepareFoodServiceImpl())).build();
+    ServerBuilder builder = ServerBuilder.forPort(8084).
+        addService(tracingInterceptor.intercept(new PrepareFoodServiceImpl()));
+    Utils.configureWavefrontGrpcSdk(builder, configuration,
+        PrepareFoodServiceGrpc.getServiceDescriptor());
+    Server kitchen = builder.build();
     System.out.println("Starting Kitchen server ...");
     kitchen.start();
     System.out.println("Kitchen server started");
@@ -28,7 +33,8 @@ public class Kitchen {
   }
 
   public static void main(String[] args) throws InterruptedException, IOException {
-    new Kitchen();
+    GrpcServiceConfiguration configuration = Utils.scenarioFromFile(args[0]);
+    new Kitchen(configuration);
   }
 
   public class PrepareFoodServiceImpl extends kitchen.PrepareFoodServiceGrpc.PrepareFoodServiceImplBase {

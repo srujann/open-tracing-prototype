@@ -31,7 +31,7 @@ public final class Tracing {
 //      buildDirect("http://localhost:8080", "48b27465-75f0-4bd4-86ae-d4ae66f6034f");
     Reporter reporter = new WavefrontTraceReporter.Builder().
             withSource("wavefront-tracer").
-            buildDirect("https://dev-2b.corp.wavefront.com", "2ec016ef-4708-4a22-b8b9-4fa1cdab63ae");
+            buildDirect("https://dev-2b.corp.wavefront.com", "23b96141-16fe-4905-ac8a-4b092f0e264e");
     return new WavefrontTracer.Builder().withReporter(reporter).build();
   }
 

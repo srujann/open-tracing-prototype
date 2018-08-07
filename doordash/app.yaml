@@ -1,16 +1,16 @@
 server:
   applicationConnectors:
   - type: http
-    port: 8081
+    port: 8085
   adminConnectors:
   - type: http
-    port: 9081
+    port: 9085
 
 wavefrontReporterMechanism: direct-ingestion
 
 # Report via Direct Ingestion
 wavefrontServer: http://localhost:8080
-token: 83b67360-b57f-4422-b592-17f9691fd28b
+token: 33a4bbaa-db07-4de9-a2b6-5e4fb4ede5d0
 
 # Report via Proxy
 host: localhost
