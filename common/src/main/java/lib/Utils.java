@@ -11,9 +11,9 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import wavefront.com.sdk.DropwizardApplicationReporter;
-import wavefront.com.sdk.WavefrontDropwizardApplicationReporter;
-import wavefront.com.sdk.WavefrontJerseyFilter;
+import com.wavefront.sdk.DropwizardApplicationReporter;
+import com.wavefront.sdk.WavefrontDropwizardApplicationReporter;
+import com.wavefront.sdk.WavefrontJerseyFilter;
 
 import java.io.IOException;
 
@@ -60,6 +60,7 @@ public abstract class Utils {
             application(configuration.getApplication()).cluster(configuration.getCluster()).
             service(configuration.getService()).shard(configuration.getShard()).
             customTags(configuration.getTags()).build();
-    environment.jersey().register(new WavefrontJerseyFilter(wfAppReporter));
+    environment.jersey().register(new WavefrontJerseyFilter(wfAppReporter, configuration.getCluster(),
+            configuration.getService(), configuration.getShard()));
   }
 }

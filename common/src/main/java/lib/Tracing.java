@@ -4,6 +4,10 @@ import com.uber.jaeger.Configuration;
 import com.uber.jaeger.Configuration.ReporterConfiguration;
 import com.uber.jaeger.Configuration.SamplerConfiguration;
 import com.uber.jaeger.samplers.ConstSampler;
+import com.wavefront.opentracing.WavefrontTracer;
+
+import com.wavefront.opentracing.reporting.Reporter;
+import com.wavefront.opentracing.reporting.WavefrontTraceReporter;
 import io.opentracing.Scope;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
@@ -22,19 +26,13 @@ public final class Tracing {
   private Tracing() {
   }
 
-  public static com.uber.jaeger.Tracer init(String service) {
-    SamplerConfiguration samplerConfig = SamplerConfiguration.fromEnv()
-            .withType(ConstSampler.TYPE)
-            .withParam(1);
-
-    ReporterConfiguration reporterConfig = ReporterConfiguration.fromEnv()
-            .withLogSpans(true);
-
-    Configuration config = new Configuration(service)
-            .withSampler(samplerConfig)
-            .withReporter(reporterConfig);
-
-    return (com.uber.jaeger.Tracer) config.getTracer();
+  public static Tracer init(String service) {
+//    Reporter reporter = new WavefrontTraceReporter.Builder().
+//      buildDirect("http://localhost:8080", "48b27465-75f0-4bd4-86ae-d4ae66f6034f");
+    Reporter reporter = new WavefrontTraceReporter.Builder().
+            withSource("wavefront-tracer").
+            buildDirect("https://dev-2b.corp.wavefront.com", "2ec016ef-4708-4a22-b8b9-4fa1cdab63ae");
+    return new WavefrontTracer.Builder().withReporter(reporter).build();
   }
 
   public static Scope startServerSpan(Tracer tracer, javax.ws.rs.core.HttpHeaders httpHeaders, String operationName) {
